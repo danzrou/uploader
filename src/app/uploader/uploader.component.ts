@@ -8,6 +8,7 @@ import {
 	HostListener,
 	Input,
 	OnDestroy,
+	OnInit,
 	Output,
 	ViewChild
 } from '@angular/core';
@@ -15,8 +16,8 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { fromEvent, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { UploadTriggerDirective } from './upload-trigger.directive';
-
-const ALL_FILE_TYPES = '*';
+import { UploaderConfigManager } from './uploader-config-manager.service';
+import { UploaderFileConfig } from './uploader.config';
 
 @Component({
 	selector: 'app-uploader',
@@ -31,13 +32,11 @@ const ALL_FILE_TYPES = '*';
 	]
 })
 export class UploaderComponent
-	implements ControlValueAccessor, AfterContentInit, OnDestroy {
-	get element() {
-		return this.fileInput.nativeElement as HTMLInputElement;
-	}
+	implements ControlValueAccessor, AfterContentInit, OnDestroy, OnInit {
 	@Input() disabled: boolean;
 	@Input() accept: string;
 	@Input() multiple = false;
+	@Input() fileType: string;
 
 	@ViewChild('fileInput', { static: true })
 	fileInput: ElementRef;
@@ -46,21 +45,39 @@ export class UploaderComponent
 	trigger: UploadTriggerDirective;
 
 	@Output() fileLoaded = new EventEmitter();
+	@Output() fileError = new EventEmitter();
 
-	private _file: File | null = null;
+	private file: File | null = null;
+	private config: UploaderFileConfig;
 	private destroy$ = new Subject();
 
 	onChange: Function = () => {};
 	onTouched: Function = () => {};
 
+	constructor(private manager: UploaderConfigManager) {}
+
+	get element() {
+		return this.fileInput.nativeElement as HTMLInputElement;
+	}
+
 	@HostListener('change', ['$event.target.files'])
 	onFileChanges(event: FileList) {
 		if (event.length) {
 			const file = event.item(0);
-			this._file = file;
-			this.onChange(file);
-			this.fileLoaded.emit(file);
+			if (this.isValidFile(file)) {
+				this.file = file;
+				this.onChange(file);
+				this.fileLoaded.emit(file);
+			} else {
+				this.file = null;
+				this.element.value = '';
+			}
 		}
+	}
+
+	ngOnInit() {
+		this.config = this.manager.getConfigByFileType(this.fileType);
+		this.accept = this.accept || this.config.extensions.join(', ');
 	}
 
 	ngAfterContentInit() {
@@ -82,7 +99,7 @@ export class UploaderComponent
 		if (this.fileInput) {
 			this.element.value = '';
 		}
-		this._file = null;
+		this.file = null;
 	}
 
 	setDisabledState(isDisabled: boolean): void {
@@ -101,5 +118,24 @@ export class UploaderComponent
 		fromEvent(this.trigger.nativeElement, 'click')
 			.pipe(takeUntil(this.destroy$))
 			.subscribe(() => this.openFileBrowser());
+	}
+
+	private isValidFile(file: File) {
+		const { size, name } = file;
+		if (!this.manager.hasValidExtension(this.config, name)) {
+			this.fileError.emit({
+				type: 'extension',
+				message: 'The file type is not supported'
+			});
+			return false;
+		} else if (!this.manager.hasValidSize(this.config, size)) {
+			this.fileError.emit({
+				type: 'size',
+				message: `File size needs to be up to ${this.config.maxSize}`
+			});
+			return false;
+		}
+
+		return true;
 	}
 }
