@@ -41,7 +41,7 @@ export class UploaderComponent
 	@ViewChild('fileInput', { static: true })
 	fileInput: ElementRef;
 
-	@ContentChild(UploadTriggerDirective, { static: false })
+	@ContentChild(UploadTriggerDirective)
 	trigger: UploadTriggerDirective;
 
 	@Output() fileLoaded = new EventEmitter();
