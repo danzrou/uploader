@@ -8,6 +8,7 @@ import {
 	HostListener,
 	Input,
 	OnDestroy,
+	OnInit,
 	Output,
 	ViewChild
 } from '@angular/core';
@@ -15,8 +16,8 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { fromEvent, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { UploadTriggerDirective } from './upload-trigger.directive';
-
-const ALL_FILE_TYPES = '*';
+import { UploaderConfigManager } from './uploader-config-manager.service';
+import { UploaderFileConfig } from './uploader.config';
 
 @Component({
 	selector: 'app-uploader',
@@ -31,13 +32,14 @@ const ALL_FILE_TYPES = '*';
 	]
 })
 export class UploaderComponent
-	implements ControlValueAccessor, AfterContentInit, OnDestroy {
+	implements ControlValueAccessor, AfterContentInit, OnDestroy, OnInit {
 	get element() {
 		return this.fileInput.nativeElement as HTMLInputElement;
 	}
 	@Input() disabled: boolean;
 	@Input() accept: string;
 	@Input() multiple = false;
+	@Input() fileType: string;
 
 	@ViewChild('fileInput', { static: true })
 	fileInput: ElementRef;
@@ -48,10 +50,13 @@ export class UploaderComponent
 	@Output() fileLoaded = new EventEmitter();
 
 	private _file: File | null = null;
+	private _config: UploaderFileConfig;
 	private destroy$ = new Subject();
 
 	onChange: Function = () => {};
 	onTouched: Function = () => {};
+
+	constructor(private manager: UploaderConfigManager) {}
 
 	@HostListener('change', ['$event.target.files'])
 	onFileChanges(event: FileList) {
@@ -61,6 +66,10 @@ export class UploaderComponent
 			this.onChange(file);
 			this.fileLoaded.emit(file);
 		}
+	}
+
+	ngOnInit() {
+		this._config = this.manager.getConfigByFileType(this.fileType);
 	}
 
 	ngAfterContentInit() {

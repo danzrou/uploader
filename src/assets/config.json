@@ -2,7 +2,11 @@
 	"uploads": {
 		"image": {
 			"maxSize": "5mb",
-			"extensions": [".png", ".jpg", ".jpeg"]
+			"extensions": [".png", ".jpeg", ".jpg"]
+		},
+		"document": {
+			"maxSize": "10mb",
+			"extensions": [".pdf", ".docx"]
 		}
 	}
 }
