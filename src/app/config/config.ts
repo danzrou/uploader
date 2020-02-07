@@ -1,18 +1,13 @@
 import { InjectionToken } from '@angular/core';
 
-export interface ClientUploadConfig {
-	[key: string]: ClientFileConfig;
+export interface UploaderAppConfig {
+	maxSize: string; // 10kb, 5mb ...
+	extensions: string[]; // [".png", ".jpg"] or ["*"] for all file types
 }
 
-export interface ClientFileConfig {
-	maxSize: string;
-	extensions: string[];
+export interface UploadFileConfig {
+	maxSize: number;
+	accept: string;
 }
 
-export interface AppConfig {
-	[key: string]: {
-		uploads: ClientUploadConfig;
-	};
-}
-
-export const CONFIG = new InjectionToken<AppConfig>('AppConfig');
+export const CONFIG = new InjectionToken<UploaderAppConfig>('AppConfig');

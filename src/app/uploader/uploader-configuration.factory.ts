@@ -4,7 +4,9 @@ import { toFileSize } from '../utils';
 import { UploaderFileTypeEnum } from './uploader-file-type.enum';
 import { UploaderConfiguration } from './uploader.config';
 
-@Injectable()
+@Injectable({
+	providedIn: 'root'
+})
 export class UploaderConfigurationFactory {
 	private fileType: UploaderFileTypeEnum;
 	private moduleName: string;
@@ -22,7 +24,6 @@ export class UploaderConfigurationFactory {
 
 	setFileType(fileType: UploaderFileTypeEnum): this {
 		this.fileType = fileType;
-
 		return this;
 	}
 
@@ -32,7 +33,7 @@ export class UploaderConfigurationFactory {
 		}
 
 		return this.parseToUploaderConfiguration(
-			this.config[this.moduleName].uploads[this.fileType]
+			this.config.uploads[this.fileType]
 		);
 	}
 

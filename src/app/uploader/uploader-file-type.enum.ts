@@ -1,6 +1,4 @@
-export enum UploaderFileTypeEnum {
+export const enum UploaderFileTypeEnum {
 	Image = 'image',
-	Attachment = 'attachment',
-	SystemFile = 'systemFile',
-	Dependency = 'dependency'
+	Attachment = 'document',
 }

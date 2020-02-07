@@ -1,4 +1,4 @@
-.tn-uploader {
+:host {
 	display: inline-flex;
 	position: relative;
 
@@ -9,7 +9,7 @@
 		position: absolute;
 	}
 
-	&__content {
+	.trigger {
 		height: 100%;
 		width: 100%;
 	}

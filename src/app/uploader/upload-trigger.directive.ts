@@ -1,13 +1,12 @@
 import { Directive, ElementRef } from '@angular/core';
 
 @Directive({
-  selector: '[appUploadTrigger]'
+	selector: '[appUploadTrigger]'
 })
 export class UploadTriggerDirective {
-  constructor(public elRef: ElementRef) {
-  }
+	constructor(public elRef: ElementRef) {}
 
-  get nativeElement() {
-    return this.elRef.nativeElement;
-  }
+	get nativeElement() {
+		return this.elRef.nativeElement;
+	}
 }

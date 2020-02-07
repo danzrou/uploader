@@ -7,3 +7,8 @@ export const DEFAUIL_UPLOAD_TOASTER_ERROR_DATA: UploadToasterErrorData = {
 	title: 'Error',
 	message: null
 };
+
+export const enum UploaderErrorType {
+	Size,
+	Type
+}
