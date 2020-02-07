@@ -33,9 +33,6 @@ import { UploaderFileConfig } from './uploader.config';
 })
 export class UploaderComponent
 	implements ControlValueAccessor, AfterContentInit, OnDestroy, OnInit {
-	get element() {
-		return this.fileInput.nativeElement as HTMLInputElement;
-	}
 	@Input() disabled: boolean;
 	@Input() accept: string;
 	@Input() multiple = false;
@@ -48,9 +45,10 @@ export class UploaderComponent
 	trigger: UploadTriggerDirective;
 
 	@Output() fileLoaded = new EventEmitter();
+	@Output() fileError = new EventEmitter();
 
-	private _file: File | null = null;
-	private _config: UploaderFileConfig;
+	private file: File | null = null;
+	private config: UploaderFileConfig;
 	private destroy$ = new Subject();
 
 	onChange: Function = () => {};
@@ -58,18 +56,28 @@ export class UploaderComponent
 
 	constructor(private manager: UploaderConfigManager) {}
 
+	get element() {
+		return this.fileInput.nativeElement as HTMLInputElement;
+	}
+
 	@HostListener('change', ['$event.target.files'])
 	onFileChanges(event: FileList) {
 		if (event.length) {
 			const file = event.item(0);
-			this._file = file;
-			this.onChange(file);
-			this.fileLoaded.emit(file);
+			if (this.isValidFile(file)) {
+				this.file = file;
+				this.onChange(file);
+				this.fileLoaded.emit(file);
+			} else {
+				this.file = null;
+				this.element.value = '';
+			}
 		}
 	}
 
 	ngOnInit() {
-		this._config = this.manager.getConfigByFileType(this.fileType);
+		this.config = this.manager.getConfigByFileType(this.fileType);
+		this.accept = this.accept || this.config.extensions.join(', ');
 	}
 
 	ngAfterContentInit() {
@@ -91,7 +99,7 @@ export class UploaderComponent
 		if (this.fileInput) {
 			this.element.value = '';
 		}
-		this._file = null;
+		this.file = null;
 	}
 
 	setDisabledState(isDisabled: boolean): void {
@@ -110,5 +118,24 @@ export class UploaderComponent
 		fromEvent(this.trigger.nativeElement, 'click')
 			.pipe(takeUntil(this.destroy$))
 			.subscribe(() => this.openFileBrowser());
+	}
+
+	private isValidFile(file: File) {
+		const { size, name } = file;
+		if (!this.manager.hasValidExtension(this.config, name)) {
+			this.fileError.emit({
+				type: 'extension',
+				message: 'The file type is not supported'
+			});
+			return false;
+		} else if (!this.manager.hasValidSize(this.config, size)) {
+			this.fileError.emit({
+				type: 'size',
+				message: `File size needs to be up to ${this.config.maxSize}`
+			});
+			return false;
+		}
+
+		return true;
 	}
 }

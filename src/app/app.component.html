@@ -1,5 +1,16 @@
 <app-uploader fileType="image"
-              maxSize="5mb"
-              (fileLoaded)="onFileLoaded($event)">
-    <button class="btn" appUploadTrigger>Upload</button>
+              (fileLoaded)="onFileLoaded($event)"
+              (fileError)="onFileError($event)">
+    <button class="btn" appUploadTrigger>Upload - Image</button>
 </app-uploader>
+
+<app-uploader (fileLoaded)="onFileLoaded($event)"
+              (fileError)="onFileError($event)">
+    <button class="btn" appUploadTrigger>Upload - all</button>
+</app-uploader>
+
+<div *ngIf="error; else preview">{{error | json}}</div>
+
+<ng-template #preview>
+    <pre *ngIf="file">{{file | json}}</pre>
+</ng-template>

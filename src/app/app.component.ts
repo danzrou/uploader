@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { UploaderErrorType } from './uploader/upload-toaster-error-data.interface';
 
 @Component({
 	selector: 'app-root',
@@ -7,11 +6,17 @@ import { UploaderErrorType } from './uploader/upload-toaster-error-data.interfac
 	styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-	title = 'uploader';
+	error;
+	file;
 
-	onUploadError(error: { type: UploaderErrorType; msg: string }) {}
-
-  onFileLoaded(file: File) {
+	onFileLoaded(file: File) {
 		console.log(file);
-  }
+		this.error = null;
+		this.file = { name: file.name, size: file.size };
+	}
+
+	onFileError(error) {
+		this.file = null;
+		this.error = error;
+	}
 }
